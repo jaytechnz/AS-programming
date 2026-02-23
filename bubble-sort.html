@@ -1,0 +1,1141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bubble Sort</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Source+Code+Pro:wght@400;600&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --crimson: #5b000b;
+    --crimson-light: #8a0010;
+    --crimson-pale: #fdf0f1;
+    --grey: #ededed;
+    --grey-mid: #c8c8c8;
+    --grey-dark: #888;
+    --text: #1a1a1a;
+    --white: #ffffff;
+    --code-bg: #1e1e1e;
+    --code-text: #d4d4d4;
+    --success: #1a6b35;
+    --error: #b00020;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Lato', sans-serif; background: var(--white); color: var(--text); min-height: 100vh; }
+
+  header {
+    background: var(--crimson); color: var(--white);
+    padding: 28px 40px 22px; border-bottom: 5px solid #3a0007;
+    position: relative; overflow: hidden;
+  }
+  header::before {
+    content: ''; position: absolute; right: -60px; top: -60px;
+    width: 240px; height: 240px; border-radius: 50%; background: rgba(255,255,255,0.04);
+  }
+  header::after {
+    content: ''; position: absolute; right: 80px; bottom: -80px;
+    width: 180px; height: 180px; border-radius: 50%; background: rgba(255,255,255,0.03);
+  }
+  header h1 { font-family: 'Arial', serif; font-size: 2rem; letter-spacing: 0.02em; }
+  header p  { font-size: 0.88rem; opacity: 0.75; margin-top: 4px; font-weight: 300; letter-spacing: 0.08em; }
+
+  .main-nav {
+    background: var(--grey); display: flex;
+    border-bottom: 2px solid var(--grey-mid); position: sticky; top: 0; z-index: 100;
+  }
+  .main-nav button {
+    flex: 1; padding: 14px 10px; background: none; border: none;
+    border-bottom: 3px solid transparent; font-family: 'Lato', sans-serif;
+    font-size: 0.88rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+    cursor: pointer; color: var(--grey-dark); transition: all 0.2s;
+  }
+  .main-nav button:hover { color: var(--crimson); }
+  .main-nav button.active { color: var(--crimson); border-bottom-color: var(--crimson); background: var(--white); }
+
+  .section { display: none; padding: 32px 40px 60px; max-width: 1100px; margin: 0 auto; }
+  .section.active { display: block; }
+
+  .section-title { font-family: 'Playfair Display', serif; font-size: 1.6rem; color: var(--crimson); margin-bottom: 6px; }
+  .section-subtitle { font-size: 0.88rem; color: var(--grey-dark); margin-bottom: 28px; font-weight: 300; }
+
+  .tab-bar { display: flex; gap: 4px; margin-bottom: 20px; border-bottom: 2px solid var(--grey-mid); }
+  .tab-bar button {
+    padding: 9px 22px; background: var(--grey); border: 1px solid var(--grey-mid);
+    border-bottom: none; border-radius: 6px 6px 0 0; font-family: 'Lato', sans-serif;
+    font-size: 0.85rem; font-weight: 700; cursor: pointer; color: var(--grey-dark);
+    transition: all 0.2s; position: relative; bottom: -2px;
+  }
+  .tab-bar button.active {
+    background: var(--white); color: var(--crimson);
+    border-color: var(--grey-mid); border-bottom: 2px solid var(--white); z-index: 1;
+  }
+  .tab-bar button:hover:not(.active) { background: #e0e0e0; color: var(--crimson); }
+
+  .code-panel { display: none; }
+  .code-panel.active { display: block; }
+
+  .version-row { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 28px; }
+  @media (max-width: 760px) { .version-row { grid-template-columns: 1fr; } }
+
+  .code-card { border: 1px solid var(--grey-mid); border-radius: 8px; overflow: hidden; }
+  .code-card-header {
+    background: var(--crimson); color: var(--white);
+    padding: 10px 16px; display: flex; justify-content: space-between; align-items: center;
+  }
+  .code-card-header h3 { font-family: 'Playfair Display', serif; font-size: 1rem; font-weight: 700; }
+  .code-card-header span { font-size: 0.72rem; opacity: 0.7; letter-spacing: 0.08em; text-transform: uppercase; }
+  .code-card pre {
+    background: var(--code-bg); color: var(--code-text); padding: 20px;
+    font-family: 'Source Code Pro', monospace; font-size: 0.82rem;
+    line-height: 1.7; overflow-x: auto; margin: 0; white-space: pre;
+  }
+
+  .array-type-tabs { margin-top: 28px; }
+  .array-type-tabs h4 { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--grey-dark); margin-bottom: 10px; }
+  .array-code-panel { display: none; }
+  .array-code-panel.active { display: block; }
+
+  /* PARSONS */
+  .parsons-container { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; margin-top: 16px; }
+  @media (max-width: 700px) { .parsons-container { grid-template-columns: 1fr; } }
+
+  .parsons-box { border: 2px solid var(--grey-mid); border-radius: 8px; min-height: 380px; padding: 12px; background: var(--grey); }
+  .parsons-box h4 {
+    font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.08em;
+    color: var(--grey-dark); margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid var(--grey-mid);
+  }
+  .parsons-box.drop-target { background: var(--white); border-color: var(--crimson); }
+  .parsons-item {
+    background: var(--white); border: 1px solid var(--grey-mid); border-left: 4px solid var(--crimson);
+    border-radius: 4px; padding: 9px 12px; margin-bottom: 8px;
+    font-family: 'Source Code Pro', monospace; font-size: 0.79rem;
+    cursor: grab; user-select: none; transition: box-shadow 0.15s, transform 0.15s; white-space: pre;
+  }
+  .parsons-item:hover { box-shadow: 0 3px 10px rgba(91,0,11,0.12); }
+  .parsons-item.dragging  { opacity: 0.4; transform: scale(0.97); }
+  .parsons-item.correct   { border-left-color: var(--success); background: #f0fff4; }
+  .parsons-item.incorrect { border-left-color: var(--error);   background: #fff0f1; }
+  .parsons-item.drag-over { border-top: 2px solid var(--crimson); }
+
+  .puzzle-label {
+    font-size: 0.82rem; color: var(--grey-dark); margin-bottom: 14px;
+    padding: 8px 14px; background: var(--grey); border-radius: 4px; border: 1px solid var(--grey-mid);
+  }
+  .puzzle-label strong { color: var(--crimson); }
+
+  .parsons-controls { display: flex; gap: 12px; margin-top: 20px; flex-wrap: wrap; align-items: center; }
+
+  .btn { padding: 10px 24px; border: none; border-radius: 5px; font-family: 'Lato', sans-serif; font-weight: 700; font-size: 0.85rem; letter-spacing: 0.05em; cursor: pointer; transition: all 0.2s; }
+  .btn-primary   { background: var(--crimson); color: var(--white); }
+  .btn-primary:hover { background: var(--crimson-light); }
+  .btn-secondary { background: var(--grey); color: var(--text); border: 1px solid var(--grey-mid); }
+  .btn-secondary:hover { background: #ddd; }
+
+  .parsons-result { margin-top: 16px; padding: 12px 16px; border-radius: 6px; font-size: 0.88rem; font-weight: 700; display: none; }
+  .parsons-result.show { display: block; }
+  .parsons-result.pass { background: #e8f5e9; color: var(--success); border: 1px solid #a5d6a7; }
+  .parsons-result.fail { background: #ffebee; color: var(--error);   border: 1px solid #ef9a9a; }
+
+  /* QUIZ */
+  .quiz-grid { display: flex; flex-direction: column; gap: 24px; margin-top: 16px; }
+  .quiz-card { border: 1px solid var(--grey-mid); border-radius: 8px; overflow: hidden; }
+  .quiz-card-q { padding: 16px 20px; background: var(--grey); font-weight: 700; font-size: 0.95rem; line-height: 1.5; border-bottom: 1px solid var(--grey-mid); }
+  .quiz-card-q span.qnum {
+    display: inline-block; background: var(--crimson); color: var(--white);
+    width: 26px; height: 26px; border-radius: 50%; text-align: center;
+    line-height: 26px; font-size: 0.8rem; margin-right: 10px; vertical-align: middle;
+  }
+  .quiz-options { padding: 14px 20px; display: flex; flex-direction: column; gap: 8px; }
+  .quiz-option {
+    display: flex; align-items: flex-start; gap: 10px; padding: 10px 14px;
+    border: 1px solid var(--grey-mid); border-radius: 5px; cursor: pointer;
+    transition: all 0.15s; font-size: 0.88rem; line-height: 1.4; background: var(--white);
+  }
+  .quiz-option:hover { border-color: var(--crimson); background: var(--crimson-pale); }
+  .quiz-option input { margin-top: 2px; accent-color: var(--crimson); flex-shrink: 0; }
+  .quiz-option.correct-ans { background: #e8f5e9; border-color: var(--success); }
+  .quiz-option.wrong-ans   { background: #ffebee; border-color: var(--error); }
+  .quiz-feedback { padding: 10px 20px 16px; font-size: 0.84rem; display: none; line-height: 1.5; }
+  .quiz-feedback.show { display: block; }
+  .quiz-feedback.correct   { color: var(--success); }
+  .quiz-feedback.incorrect { color: var(--error); }
+  .quiz-controls { display: flex; gap: 12px; margin-top: 24px; align-items: center; flex-wrap: wrap; }
+  .quiz-score { font-size: 0.9rem; color: var(--grey-dark); margin-left: auto; font-weight: 700; }
+
+  .info-box {
+    background: var(--crimson-pale); border-left: 4px solid var(--crimson);
+    padding: 14px 18px; border-radius: 0 6px 6px 0; margin-bottom: 24px;
+    font-size: 0.88rem; line-height: 1.6;
+  }
+  .info-box strong { color: var(--crimson); }
+
+  .complexity-row { display: flex; gap: 12px; margin-top: 20px; flex-wrap: wrap; }
+  .badge { padding: 6px 14px; border-radius: 20px; font-size: 0.78rem; font-weight: 700; letter-spacing: 0.05em; }
+  .badge-crimson { background: var(--crimson); color: var(--white); }
+  .badge-grey    { background: var(--grey-mid); color: var(--text); }
+
+  footer { background: var(--grey); border-top: 1px solid var(--grey-mid); text-align: center; padding: 18px; font-size: 0.78rem; color: var(--grey-dark); }
+  footer strong { color: var(--crimson); }
+
+  .score-bar-wrap { height: 8px; background: var(--grey); border-radius: 4px; overflow: hidden; margin-top: 8px; }
+  .score-bar { height: 100%; background: var(--crimson); transition: width 0.5s ease; border-radius: 4px; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Bubble Sort Algorithm</h1>
+  <p>Cambridge AS Computer Science 9618 &mdash; Crimson Global Academy</p>
+</header>
+
+<nav class="main-nav">
+  <button class="active" onclick="showSection('explore')">&#128214; Explore Code</button>
+  <button onclick="showSection('parsons')">&#129327; Parson's Problem</button>
+  <button onclick="showSection('quiz')">&#9999;&#65039; Self-Marking Quiz</button>
+</nav>
+
+<!-- ═══════════ EXPLORE ═══════════ -->
+<section class="section active" id="explore">
+  <h2 class="section-title">Bubble Sort — Code Reference</h2>
+  <p class="section-subtitle">Switch between Java and Cambridge Pseudocode. Explore efficient versus inefficient implementations across different array types.</p>
+
+  <div class="info-box">
+    <strong>Algorithm Overview:</strong> Bubble sort repeatedly compares adjacent elements, swapping them if they are out of order.
+    The <strong>inefficient</strong> version always performs (n&minus;1)&sup2; comparisons using two FOR loops.
+    The <strong>efficient</strong> version uses a <code>swapped</code> flag to exit early when no swaps occur in a pass.
+  </div>
+
+  <div class="tab-bar" id="lang-tabs">
+    <button class="active" onclick="switchLang('java')">Java</button>
+    <button onclick="switchLang('pseudo')">Cambridge Pseudocode</button>
+  </div>
+
+  <!-- JAVA -->
+  <div class="code-panel active" id="panel-java">
+    <div class="array-type-tabs">
+      <h4>Array Type</h4>
+      <div class="tab-bar" id="java-arr-tabs">
+        <button class="active" onclick="switchJavaArr('int1d')">1D Integer</button>
+        <button onclick="switchJavaArr('str1d')">1D String</button>
+        <button onclick="switchJavaArr('int2d')">2D Integer</button>
+      </div>
+      <div class="array-code-panel active" id="java-int1d">
+        <div class="version-row">
+          <div class="code-card">
+            <div class="code-card-header"><h3>&#x2705; Efficient Version</h3><span>DO-WHILE outer &middot; FOR inner</span></div>
+            <pre id="java-eff-1d-int"></pre>
+          </div>
+          <div class="code-card">
+            <div class="code-card-header"><h3>&#x26A0;&#xFE0F; Inefficient Version</h3><span>Two FOR loops</span></div>
+            <pre id="java-ineff-1d-int"></pre>
+          </div>
+        </div>
+      </div>
+      <div class="array-code-panel" id="java-str1d">
+        <div class="version-row">
+          <div class="code-card">
+            <div class="code-card-header"><h3>&#x2705; Efficient &mdash; 1D String</h3><span>DO-WHILE outer &middot; FOR inner</span></div>
+            <pre id="java-eff-1d-str"></pre>
+          </div>
+          <div class="code-card">
+            <div class="code-card-header"><h3>&#x26A0;&#xFE0F; Inefficient &mdash; 1D String</h3><span>Two FOR loops</span></div>
+            <pre id="java-ineff-1d-str"></pre>
+          </div>
+        </div>
+        <div class="info-box">
+          <strong>String comparison in Java:</strong> Use <code>compareTo()</code> &mdash; returns negative, zero, or positive.
+          <code>a.compareTo(b) &gt; 0</code> means <code>a</code> comes after <code>b</code> alphabetically.
+          The <code>&gt;</code> operator cannot be used directly with reference types in Java.
+        </div>
+      </div>
+      <div class="array-code-panel" id="java-int2d">
+        <div class="version-row">
+          <div class="code-card">
+            <div class="code-card-header"><h3>&#x2705; Efficient &mdash; 2D Integer</h3><span>Sort rows by column 0</span></div>
+            <pre id="java-eff-2d-int"></pre>
+          </div>
+          <div class="code-card">
+            <div class="code-card-header"><h3>&#x26A0;&#xFE0F; Inefficient &mdash; 2D Integer</h3><span>Sort rows by column 0</span></div>
+            <pre id="java-ineff-2d-int"></pre>
+          </div>
+        </div>
+        <div class="info-box">
+          <strong>2D Array Note:</strong> Compare <code>arr[i][0]</code> and <code>arr[i+1][0]</code> (key column) and swap <em>entire rows</em> to preserve each row's data integrity.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PSEUDOCODE -->
+  <div class="code-panel" id="panel-pseudo">
+    <div class="array-type-tabs">
+      <h4>Array Type</h4>
+      <div class="tab-bar" id="ps-arr-tabs">
+        <button class="active" onclick="switchPsArr('int1d')">1D Integer</button>
+        <button onclick="switchPsArr('str1d')">1D String</button>
+        <button onclick="switchPsArr('int2d')">2D Integer</button>
+      </div>
+      <div class="array-code-panel active" id="ps-int1d">
+        <div class="version-row">
+          <div class="code-card">
+            <div class="code-card-header"><h3>&#x2705; Efficient Version</h3><span>REPEAT-UNTIL outer &middot; FOR inner</span></div>
+            <pre id="ps-eff-1d-int"></pre>
+          </div>
+          <div class="code-card">
+            <div class="code-card-header"><h3>&#x26A0;&#xFE0F; Inefficient Version</h3><span>Two FOR loops</span></div>
+            <pre id="ps-ineff-1d-int"></pre>
+          </div>
+        </div>
+      </div>
+      <div class="array-code-panel" id="ps-str1d">
+        <div class="version-row">
+          <div class="code-card">
+            <div class="code-card-header"><h3>&#x2705; Efficient &mdash; 1D String</h3><span>REPEAT-UNTIL outer &middot; FOR inner</span></div>
+            <pre id="ps-eff-1d-str"></pre>
+          </div>
+          <div class="code-card">
+            <div class="code-card-header"><h3>&#x26A0;&#xFE0F; Inefficient &mdash; 1D String</h3><span>Two FOR loops</span></div>
+            <pre id="ps-ineff-1d-str"></pre>
+          </div>
+        </div>
+        <div class="info-box">
+          <strong>String comparison in pseudocode:</strong> Cambridge pseudocode supports lexicographic comparison with standard operators &mdash; use <code>&gt;</code> directly to compare STRING values.
+        </div>
+      </div>
+      <div class="array-code-panel" id="ps-int2d">
+        <div class="version-row">
+          <div class="code-card">
+            <div class="code-card-header"><h3>&#x2705; Efficient &mdash; 2D Integer</h3><span>Sort rows by column 0</span></div>
+            <pre id="ps-eff-2d-int"></pre>
+          </div>
+          <div class="code-card">
+            <div class="code-card-header"><h3>&#x26A0;&#xFE0F; Inefficient &mdash; 2D Integer</h3><span>Sort rows by column 0</span></div>
+            <pre id="ps-ineff-2d-int"></pre>
+          </div>
+        </div>
+        <div class="info-box">
+          <strong>2D Array Note:</strong> In Cambridge pseudocode a 2D array is indexed <code>grid[row, col]</code>. Swap entire rows column-by-column using a temporary row array.
+        </div>
+      </div>
+    </div>
+  </div>
+
+</section>
+
+<!-- ═══════════ PARSONS ═══════════ -->
+<section class="section" id="parsons">
+  <h2 class="section-title">Parson's Problem</h2>
+  <p class="section-subtitle">Drag code blocks from the bank into the correct order. The blocks are shuffled randomly every time you load the page or reset.</p>
+
+  <div class="tab-bar" id="parsons-lang-tabs">
+    <button class="active" onclick="switchParsonsLang('java')">Java</button>
+    <button onclick="switchParsonsLang('pseudo')">Cambridge Pseudocode</button>
+  </div>
+  <div class="tab-bar" id="parsons-ver-tabs" style="margin-top:-16px">
+    <button class="active" onclick="switchParsonsVer('eff')">Efficient</button>
+    <button onclick="switchParsonsVer('ineff')">Inefficient</button>
+  </div>
+  <div class="tab-bar" id="parsons-arr-tabs" style="margin-top:-16px">
+    <button class="active" onclick="switchParsonsArr('int1d')">1D Integer</button>
+    <button onclick="switchParsonsArr('str1d')">1D String</button>
+    <button onclick="switchParsonsArr('int2d')">2D Integer</button>
+  </div>
+
+  <div class="puzzle-label" id="parsons-puzzle-label"></div>
+
+  <div class="parsons-container">
+    <div class="parsons-box" id="parsons-bank"><h4>&#128230; Code Bank &mdash; drag from here</h4></div>
+    <div class="parsons-box drop-target" id="parsons-answer"><h4>&#9997;&#65039; Your Answer &mdash; drop here in order</h4></div>
+  </div>
+
+  <div class="parsons-controls">
+    <button class="btn btn-primary"   onclick="checkParsons()">Check Answer</button>
+    <button class="btn btn-secondary" onclick="resetParsons()">Reset</button>
+    <button class="btn btn-secondary" onclick="showParsonsHint()">Reveal Solution</button>
+  </div>
+
+  <div class="parsons-result" id="parsons-result"></div>
+  <div class="score-bar-wrap" id="parsons-bar-wrap" style="display:none">
+    <div class="score-bar" id="parsons-bar" style="width:0%"></div>
+  </div>
+</section>
+
+<!-- ═══════════ QUIZ ═══════════ -->
+<section class="section" id="quiz">
+  <h2 class="section-title">Self-Marking Quiz</h2>
+  <p class="section-subtitle">3 questions selected at random from a bank of 10 &mdash; reshuffled every reload. Submit to see instant feedback.</p>
+  <div class="quiz-grid" id="quiz-container"></div>
+  <div class="quiz-controls">
+    <button class="btn btn-primary"   onclick="submitAllQuiz()">Submit All</button>
+    <button class="btn btn-secondary" onclick="regenerateQuiz()">New Questions</button>
+    <div class="quiz-score" id="quiz-score" style="display:none"></div>
+  </div>
+</section>
+
+<footer>
+  <strong>Cambridge AS Computer Science 9618</strong> &mdash; Bubble Sort Interactive Resource &mdash; &copy Crimson Global Academy 2026
+</footer>
+
+<script>
+// ════════════════════ NAVIGATION
+function showSection(id) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.main-nav button').forEach(b => b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.querySelectorAll('.main-nav button')[['explore','parsons','quiz'].indexOf(id)].classList.add('active');
+}
+
+// ════════════════════ EXPLORE TABS
+function switchLang(lang) {
+  document.querySelectorAll('#lang-tabs button').forEach((b,i) => b.classList.toggle('active', ['java','pseudo'][i] === lang));
+  document.querySelectorAll('.code-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('panel-' + lang).classList.add('active');
+}
+function switchJavaArr(type) {
+  document.querySelectorAll('#java-arr-tabs button').forEach((b,i) => b.classList.toggle('active', ['int1d','str1d','int2d'][i] === type));
+  document.querySelectorAll('#panel-java .array-code-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('java-' + type).classList.add('active');
+}
+function switchPsArr(type) {
+  document.querySelectorAll('#ps-arr-tabs button').forEach((b,i) => b.classList.toggle('active', ['int1d','str1d','int2d'][i] === type));
+  document.querySelectorAll('#panel-pseudo .array-code-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('ps-' + type).classList.add('active');
+}
+
+// ════════════════════ CODE STRINGS
+// Arrow: \u2190   Note: all pseudocode IF lines have THEN on the same line
+const codes = {
+  java: {
+    eff1dInt:
+`// Efficient Bubble Sort \u2014 1D integer array
+// Outer: DO-WHILE  |  Inner: FOR
+int[] arr = {64, 34, 25, 12, 22, 11, 90};
+boolean swapped;
+
+do {
+    swapped = false;
+    for (int i = 0; i < arr.length - 1; i++) {
+        if (arr[i] > arr[i + 1]) {
+            int temp    = arr[i];
+            arr[i]      = arr[i + 1];
+            arr[i + 1]  = temp;
+            swapped = true;
+        }
+    }
+} while (swapped);
+// Exits early when a complete pass produces no swaps`,
+
+    ineff1dInt:
+`// Inefficient Bubble Sort \u2014 1D integer array
+// Two FOR loops \u2014 always (n\u22121)\u00b2 comparisons
+int[] arr = {64, 34, 25, 12, 22, 11, 90};
+
+for (int pass = 0; pass < arr.length - 1; pass++) {
+    for (int i = 0; i < arr.length - 1; i++) {
+        if (arr[i] > arr[i + 1]) {
+            int temp    = arr[i];
+            arr[i]      = arr[i + 1];
+            arr[i + 1]  = temp;
+        }
+    }
+}
+// All passes always completed, even if sorted early`,
+
+    eff1dStr:
+`// Efficient Bubble Sort \u2014 1D String array
+String[] names = {"Zara", "Alice", "Mohammed", "Ben"};
+boolean swapped;
+
+do {
+    swapped = false;
+    for (int i = 0; i < names.length - 1; i++) {
+        // compareTo() > 0: names[i] comes AFTER names[i+1] lexicographically
+        if (names[i].compareTo(names[i + 1]) > 0) {
+            String temp   = names[i];
+            names[i]      = names[i + 1];
+            names[i + 1]  = temp;
+            swapped = true;
+        }
+    }
+} while (swapped);`,
+
+    ineff1dStr:
+`// Inefficient Bubble Sort \u2014 1D String array
+String[] names = {"Zara", "Alice", "Mohammed", "Ben"};
+
+for (int pass = 0; pass < names.length - 1; pass++) {
+    for (int i = 0; i < names.length - 1; i++) {
+        if (names[i].compareTo(names[i + 1]) > 0) {
+            String temp   = names[i];
+            names[i]      = names[i + 1];
+            names[i + 1]  = temp;
+        }
+    }
+}`,
+
+    eff2dInt:
+`// Efficient Bubble Sort \u2014 2D integer array
+// Sorts rows by value in column 0
+int[][] grid = {
+    {5, 20, 3},
+    {1, 44, 7},
+    {9, 11, 2},
+    {3, 55, 6}
+};
+boolean swapped;
+
+do {
+    swapped = false;
+    for (int i = 0; i < grid.length - 1; i++) {
+        if (grid[i][0] > grid[i + 1][0]) {
+            // Swap entire rows to preserve row data
+            int[] tempRow   = grid[i];
+            grid[i]         = grid[i + 1];
+            grid[i + 1]     = tempRow;
+            swapped = true;
+        }
+    }
+} while (swapped);`,
+
+    ineff2dInt:
+`// Inefficient Bubble Sort \u2014 2D integer array
+// Sorts rows by value in column 0
+int[][] grid = {
+    {5, 20, 3},
+    {1, 44, 7},
+    {9, 11, 2},
+    {3, 55, 6}
+};
+
+for (int pass = 0; pass < grid.length - 1; pass++) {
+    for (int i = 0; i < grid.length - 1; i++) {
+        if (grid[i][0] > grid[i + 1][0]) {
+            int[] tempRow   = grid[i];
+            grid[i]         = grid[i + 1];
+            grid[i + 1]     = tempRow;
+        }
+    }
+}`
+  },
+
+  pseudo: {
+    eff1dInt:
+`// Efficient Bubble Sort \u2014 1D integer array
+// Outer: REPEAT-UNTIL  |  Inner: FOR
+DECLARE arr : ARRAY[0:6] OF INTEGER
+arr \u2190 {64, 34, 25, 12, 22, 11, 90}
+DECLARE swapped : BOOLEAN
+DECLARE temp : INTEGER
+
+REPEAT
+    swapped \u2190 FALSE
+    FOR i \u2190 0 TO LENGTH(arr) - 2
+        IF arr[i] > arr[i + 1] THEN
+            temp        \u2190 arr[i]
+            arr[i]      \u2190 arr[i + 1]
+            arr[i + 1]  \u2190 temp
+            swapped     \u2190 TRUE
+        ENDIF
+    NEXT i
+UNTIL swapped = FALSE
+// Exits early when a complete pass produces no swaps`,
+
+    ineff1dInt:
+`// Inefficient Bubble Sort \u2014 1D integer array
+// Two FOR loops \u2014 always (n\u22121)\u00b2 comparisons
+DECLARE arr : ARRAY[0:6] OF INTEGER
+arr \u2190 {64, 34, 25, 12, 22, 11, 90}
+DECLARE temp : INTEGER
+
+FOR pass \u2190 1 TO LENGTH(arr) - 1
+    FOR i \u2190 0 TO LENGTH(arr) - 2
+        IF arr[i] > arr[i + 1] THEN
+            temp        \u2190 arr[i]
+            arr[i]      \u2190 arr[i + 1]
+            arr[i + 1]  \u2190 temp
+        ENDIF
+    NEXT i
+NEXT pass
+// All passes always completed, even if sorted early`,
+
+    eff1dStr:
+`// Efficient Bubble Sort \u2014 1D String array
+DECLARE names : ARRAY[0:3] OF STRING
+names \u2190 {"Zara", "Alice", "Mohammed", "Ben"}
+DECLARE swapped : BOOLEAN
+DECLARE temp : STRING
+
+REPEAT
+    swapped \u2190 FALSE
+    FOR i \u2190 0 TO LENGTH(names) - 2
+        IF names[i] > names[i + 1] THEN
+            temp           \u2190 names[i]
+            names[i]       \u2190 names[i + 1]
+            names[i + 1]   \u2190 temp
+            swapped        \u2190 TRUE
+        ENDIF
+    NEXT i
+UNTIL swapped = FALSE`,
+
+    ineff1dStr:
+`// Inefficient Bubble Sort \u2014 1D String array
+DECLARE names : ARRAY[0:3] OF STRING
+names \u2190 {"Zara", "Alice", "Mohammed", "Ben"}
+DECLARE temp : STRING
+
+FOR pass \u2190 1 TO LENGTH(names) - 1
+    FOR i \u2190 0 TO LENGTH(names) - 2
+        IF names[i] > names[i + 1] THEN
+            temp           \u2190 names[i]
+            names[i]       \u2190 names[i + 1]
+            names[i + 1]   \u2190 temp
+        ENDIF
+    NEXT i
+NEXT pass`,
+
+    eff2dInt:
+`// Efficient Bubble Sort \u2014 2D integer array
+// Sort rows by column 0
+DECLARE grid : ARRAY[0:3, 0:2] OF INTEGER
+DECLARE tempRow : ARRAY[0:2] OF INTEGER
+DECLARE swapped : BOOLEAN
+
+REPEAT
+    swapped \u2190 FALSE
+    FOR i \u2190 0 TO 2
+        IF grid[i, 0] > grid[i + 1, 0] THEN
+            FOR col \u2190 0 TO 2
+                tempRow[col]      \u2190 grid[i, col]
+                grid[i, col]      \u2190 grid[i + 1, col]
+                grid[i + 1, col]  \u2190 tempRow[col]
+            NEXT col
+            swapped \u2190 TRUE
+        ENDIF
+    NEXT i
+UNTIL swapped = FALSE`,
+
+    ineff2dInt:
+`// Inefficient Bubble Sort \u2014 2D integer array
+// Sort rows by column 0
+DECLARE grid : ARRAY[0:3, 0:2] OF INTEGER
+DECLARE tempRow : ARRAY[0:2] OF INTEGER
+
+FOR pass \u2190 1 TO 3
+    FOR i \u2190 0 TO 2
+        IF grid[i, 0] > grid[i + 1, 0] THEN
+            FOR col \u2190 0 TO 2
+                tempRow[col]      \u2190 grid[i, col]
+                grid[i, col]      \u2190 grid[i + 1, col]
+                grid[i + 1, col]  \u2190 tempRow[col]
+            NEXT col
+        ENDIF
+    NEXT i
+NEXT pass`
+  }
+};
+
+function renderCodes() {
+  document.getElementById('java-eff-1d-int').textContent   = codes.java.eff1dInt;
+  document.getElementById('java-ineff-1d-int').textContent = codes.java.ineff1dInt;
+  document.getElementById('java-eff-1d-str').textContent   = codes.java.eff1dStr;
+  document.getElementById('java-ineff-1d-str').textContent = codes.java.ineff1dStr;
+  document.getElementById('java-eff-2d-int').textContent   = codes.java.eff2dInt;
+  document.getElementById('java-ineff-2d-int').textContent = codes.java.ineff2dInt;
+  document.getElementById('ps-eff-1d-int').textContent     = codes.pseudo.eff1dInt;
+  document.getElementById('ps-ineff-1d-int').textContent   = codes.pseudo.ineff1dInt;
+  document.getElementById('ps-eff-1d-str').textContent     = codes.pseudo.eff1dStr;
+  document.getElementById('ps-ineff-1d-str').textContent   = codes.pseudo.ineff1dStr;
+  document.getElementById('ps-eff-2d-int').textContent     = codes.pseudo.eff2dInt;
+  document.getElementById('ps-ineff-2d-int').textContent   = codes.pseudo.ineff2dInt;
+}
+
+// ════════════════════ PARSONS DATA
+// parsonsData[language][version][arrayType] = correct ordered array of lines
+const parsonsData = {
+  java: {
+    eff: {
+      int1d: [
+        'boolean swapped;',
+        'do {',
+        '    swapped = false;',
+        '    for (int i = 0; i < arr.length - 1; i++) {',
+        '        if (arr[i] > arr[i + 1]) {',
+        '            int temp    = arr[i];',
+        '            arr[i]      = arr[i + 1];',
+        '            arr[i + 1]  = temp;',
+        '            swapped = true;',
+        '        }',
+        '    }',
+        '} while (swapped);'
+      ],
+      str1d: [
+        'boolean swapped;',
+        'do {',
+        '    swapped = false;',
+        '    for (int i = 0; i < names.length - 1; i++) {',
+        '        if (names[i].compareTo(names[i + 1]) > 0) {',
+        '            String temp   = names[i];',
+        '            names[i]      = names[i + 1];',
+        '            names[i + 1]  = temp;',
+        '            swapped = true;',
+        '        }',
+        '    }',
+        '} while (swapped);'
+      ],
+      int2d: [
+        'boolean swapped;',
+        'do {',
+        '    swapped = false;',
+        '    for (int i = 0; i < grid.length - 1; i++) {',
+        '        if (grid[i][0] > grid[i + 1][0]) {',
+        '            int[] tempRow   = grid[i];',
+        '            grid[i]         = grid[i + 1];',
+        '            grid[i + 1]     = tempRow;',
+        '            swapped = true;',
+        '        }',
+        '    }',
+        '} while (swapped);'
+      ]
+    },
+    ineff: {
+      int1d: [
+        'for (int pass = 0; pass < arr.length - 1; pass++) {',
+        '    for (int i = 0; i < arr.length - 1; i++) {',
+        '        if (arr[i] > arr[i + 1]) {',
+        '            int temp    = arr[i];',
+        '            arr[i]      = arr[i + 1];',
+        '            arr[i + 1]  = temp;',
+        '        }',
+        '    }',
+        '}'
+      ],
+      str1d: [
+        'for (int pass = 0; pass < names.length - 1; pass++) {',
+        '    for (int i = 0; i < names.length - 1; i++) {',
+        '        if (names[i].compareTo(names[i + 1]) > 0) {',
+        '            String temp   = names[i];',
+        '            names[i]      = names[i + 1];',
+        '            names[i + 1]  = temp;',
+        '        }',
+        '    }',
+        '}'
+      ],
+      int2d: [
+        'for (int pass = 0; pass < grid.length - 1; pass++) {',
+        '    for (int i = 0; i < grid.length - 1; i++) {',
+        '        if (grid[i][0] > grid[i + 1][0]) {',
+        '            int[] tempRow   = grid[i];',
+        '            grid[i]         = grid[i + 1];',
+        '            grid[i + 1]     = tempRow;',
+        '        }',
+        '    }',
+        '}'
+      ]
+    }
+  },
+  pseudo: {
+    eff: {
+      int1d: [
+        'REPEAT',
+        '    swapped \u2190 FALSE',
+        '    FOR i \u2190 0 TO LENGTH(arr) - 2',
+        '        IF arr[i] > arr[i + 1] THEN',
+        '            temp        \u2190 arr[i]',
+        '            arr[i]      \u2190 arr[i + 1]',
+        '            arr[i + 1]  \u2190 temp',
+        '            swapped     \u2190 TRUE',
+        '        ENDIF',
+        '    NEXT i',
+        'UNTIL swapped = FALSE'
+      ],
+      str1d: [
+        'REPEAT',
+        '    swapped \u2190 FALSE',
+        '    FOR i \u2190 0 TO LENGTH(names) - 2',
+        '        IF names[i] > names[i + 1] THEN',
+        '            temp           \u2190 names[i]',
+        '            names[i]       \u2190 names[i + 1]',
+        '            names[i + 1]   \u2190 temp',
+        '            swapped        \u2190 TRUE',
+        '        ENDIF',
+        '    NEXT i',
+        'UNTIL swapped = FALSE'
+      ],
+      int2d: [
+        'REPEAT',
+        '    swapped \u2190 FALSE',
+        '    FOR i \u2190 0 TO 2',
+        '        IF grid[i, 0] > grid[i + 1, 0] THEN',
+        '            FOR col \u2190 0 TO 2',
+        '                tempRow[col]      \u2190 grid[i, col]',
+        '                grid[i, col]      \u2190 grid[i + 1, col]',
+        '                grid[i + 1, col]  \u2190 tempRow[col]',
+        '            NEXT col',
+        '            swapped \u2190 TRUE',
+        '        ENDIF',
+        '    NEXT i',
+        'UNTIL swapped = FALSE'
+      ]
+    },
+    ineff: {
+      int1d: [
+        'FOR pass \u2190 1 TO LENGTH(arr) - 1',
+        '    FOR i \u2190 0 TO LENGTH(arr) - 2',
+        '        IF arr[i] > arr[i + 1] THEN',
+        '            temp        \u2190 arr[i]',
+        '            arr[i]      \u2190 arr[i + 1]',
+        '            arr[i + 1]  \u2190 temp',
+        '        ENDIF',
+        '    NEXT i',
+        'NEXT pass'
+      ],
+      str1d: [
+        'FOR pass \u2190 1 TO LENGTH(names) - 1',
+        '    FOR i \u2190 0 TO LENGTH(names) - 2',
+        '        IF names[i] > names[i + 1] THEN',
+        '            temp           \u2190 names[i]',
+        '            names[i]       \u2190 names[i + 1]',
+        '            names[i + 1]   \u2190 temp',
+        '        ENDIF',
+        '    NEXT i',
+        'NEXT pass'
+      ],
+      int2d: [
+        'FOR pass \u2190 1 TO 3',
+        '    FOR i \u2190 0 TO 2',
+        '        IF grid[i, 0] > grid[i + 1, 0] THEN',
+        '            FOR col \u2190 0 TO 2',
+        '                tempRow[col]      \u2190 grid[i, col]',
+        '                grid[i, col]      \u2190 grid[i + 1, col]',
+        '                grid[i + 1, col]  \u2190 tempRow[col]',
+        '            NEXT col',
+        '        ENDIF',
+        '    NEXT i',
+        'NEXT pass'
+      ]
+    }
+  }
+};
+
+// ════════════════════ PARSONS STATE
+let currentParsonsLang = 'java';
+let currentParsonsVer  = 'eff';
+let currentParsonsArr  = 'int1d';
+let dragSrc = null;
+
+function switchParsonsLang(lang) {
+  currentParsonsLang = lang;
+  document.querySelectorAll('#parsons-lang-tabs button').forEach((b,i) =>
+    b.classList.toggle('active', ['java','pseudo'][i] === lang));
+  buildParsons();
+}
+function switchParsonsVer(ver) {
+  currentParsonsVer = ver;
+  document.querySelectorAll('#parsons-ver-tabs button').forEach((b,i) =>
+    b.classList.toggle('active', ['eff','ineff'][i] === ver));
+  buildParsons();
+}
+function switchParsonsArr(arr) {
+  currentParsonsArr = arr;
+  document.querySelectorAll('#parsons-arr-tabs button').forEach((b,i) =>
+    b.classList.toggle('active', ['int1d','str1d','int2d'][i] === arr));
+  buildParsons();
+}
+
+function shuffle(a) {
+  const arr = [...a];
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+function puzzleLabel() {
+  const langName = currentParsonsLang === 'java' ? 'Java' : 'Cambridge Pseudocode';
+  const verName  = currentParsonsVer  === 'eff'
+    ? 'Efficient &mdash; condition-controlled outer loop'
+    : 'Inefficient &mdash; two FOR loops';
+  const arrName  = { int1d: '1D Integer Array', str1d: '1D String Array', int2d: '2D Integer Array (sort rows by column&nbsp;0)' }[currentParsonsArr];
+  return '<strong>' + langName + '</strong> &nbsp;&middot;&nbsp; ' + verName + ' &nbsp;&middot;&nbsp; ' + arrName;
+}
+
+function buildParsons() {
+  const lines    = parsonsData[currentParsonsLang][currentParsonsVer][currentParsonsArr];
+  const shuffled = shuffle(lines);
+
+  const bank   = document.getElementById('parsons-bank');
+  const answer = document.getElementById('parsons-answer');
+  bank.innerHTML   = '<h4>&#128230; Code Bank &mdash; drag from here</h4>';
+  answer.innerHTML = '<h4>&#9997;&#65039; Your Answer &mdash; drop here in order</h4>';
+  shuffled.forEach(line => bank.appendChild(createItem(line)));
+
+  document.getElementById('parsons-puzzle-label').innerHTML = puzzleLabel();
+
+  const result = document.getElementById('parsons-result');
+  result.className = 'parsons-result';
+  document.getElementById('parsons-bar-wrap').style.display = 'none';
+  document.getElementById('parsons-bar').style.width = '0%';
+
+  setupDropZone(bank);
+  setupDropZone(answer);
+}
+
+function createItem(text) {
+  const div = document.createElement('div');
+  div.className  = 'parsons-item';
+  div.textContent = text;
+  div.draggable  = true;
+  div.addEventListener('dragstart', onDragStart);
+  div.addEventListener('dragend',   onDragEnd);
+  div.addEventListener('dragover',  onDragOver);
+  div.addEventListener('dragleave', onDragLeave);
+  div.addEventListener('drop',      onDropItem);
+  return div;
+}
+
+function setupDropZone(zone) {
+  zone.addEventListener('dragover', e => e.preventDefault());
+  zone.addEventListener('drop', onDropZone);
+}
+
+function onDragStart(e) { dragSrc = this; this.classList.add('dragging'); e.dataTransfer.effectAllowed = 'move'; }
+function onDragEnd()    { this.classList.remove('dragging'); }
+function onDragOver(e)  { e.preventDefault(); this.classList.add('drag-over'); }
+function onDragLeave()  { this.classList.remove('drag-over'); }
+function onDropItem(e)  {
+  e.preventDefault(); e.stopPropagation();
+  this.classList.remove('drag-over');
+  if (dragSrc && dragSrc !== this) this.parentNode.insertBefore(dragSrc, this);
+}
+function onDropZone(e)  { e.preventDefault(); if (dragSrc) this.appendChild(dragSrc); }
+
+function checkParsons() {
+  const correct = parsonsData[currentParsonsLang][currentParsonsVer][currentParsonsArr];
+  const items   = document.getElementById('parsons-answer').querySelectorAll('.parsons-item');
+  let score = 0;
+
+  items.forEach((item, idx) => {
+    item.classList.remove('correct', 'incorrect');
+    if (idx < correct.length && item.textContent === correct[idx]) {
+      item.classList.add('correct'); score++;
+    } else {
+      item.classList.add('incorrect');
+    }
+  });
+
+  const pct    = items.length > 0 ? Math.round((score / correct.length) * 100) : 0;
+  const result = document.getElementById('parsons-result');
+  document.getElementById('parsons-bar-wrap').style.display = 'block';
+  setTimeout(() => { document.getElementById('parsons-bar').style.width = pct + '%'; }, 50);
+
+  if (score === correct.length && items.length === correct.length) {
+    result.textContent = '\u2705 Perfect! All ' + correct.length + ' lines are in the correct order.';
+    result.className   = 'parsons-result show pass';
+  } else {
+    result.textContent = score + '/' + correct.length + ' lines correct (' + pct + '%). Lines in red are out of place. Keep going!';
+    result.className   = 'parsons-result show fail';
+  }
+}
+
+function resetParsons() { buildParsons(); }
+
+function showParsonsHint() {
+  const correct = parsonsData[currentParsonsLang][currentParsonsVer][currentParsonsArr];
+  const answer  = document.getElementById('parsons-answer');
+  answer.innerHTML = '<h4>&#9997;&#65039; Your Answer &mdash; drop here in order</h4>';
+  correct.forEach(line => { const item = createItem(line); item.classList.add('correct'); answer.appendChild(item); });
+  document.getElementById('parsons-bank').querySelectorAll('.parsons-item').forEach(i => i.remove());
+  const result = document.getElementById('parsons-result');
+  result.textContent = '\uD83D\uDCA1 Solution revealed. Study the order, then Reset to try again!';
+  result.className   = 'parsons-result show pass';
+  document.getElementById('parsons-bar-wrap').style.display = 'block';
+  setTimeout(() => { document.getElementById('parsons-bar').style.width = '100%'; }, 50);
+}
+
+// ════════════════════ QUIZ
+const quizBank = [
+  {
+    q: "Why is a temporary variable (e.g. <code>temp</code>) needed when swapping two adjacent elements in an array?",
+    opts: [
+      "To keep track of how many swaps have been made",
+      "Because you cannot assign a new value to an array element directly",
+      "To avoid overwriting one value before it has been saved, which would lose it permanently",
+      "To store the index of the element being moved"
+    ],
+    answer: 2,
+    explanation: "Without <code>temp</code>, the first assignment (<code>arr[i] = arr[i+1]</code>) would overwrite and destroy the original value of <code>arr[i]</code> before it could be copied anywhere. <code>temp</code> preserves it so it can be placed into <code>arr[i+1]</code>."
+  },
+  {
+    q: "How would you change the comparison in bubble sort so that it sorts an integer array into <strong>descending</strong> order instead of ascending?",
+    opts: [
+      "Change <code>arr[i] &gt; arr[i+1]</code> to <code>arr[i] &lt; arr[i+1]</code>",
+      "Change <code>arr[i] &gt; arr[i+1]</code> to <code>arr[i] = arr[i+1]</code>",
+      "Reverse the array after sorting it in ascending order only",
+      "Change the loop so that <code>i</code> counts downwards"
+    ],
+    answer: 0,
+    explanation: "Swapping when <code>arr[i] &lt; arr[i+1]</code> moves smaller values rightwards, so larger values bubble to the left \u2014 producing a descending result."
+  },
+  {
+    q: "In the efficient version of bubble sort, what is the purpose of the <code>swapped</code> flag?",
+    opts: [
+      "It counts the total number of swaps made",
+      "It signals that swaps occurred in the last pass, keeping the outer loop running",
+      "It stores the index of the last swap",
+      "It tracks how many passes have been completed"
+    ],
+    answer: 1,
+    explanation: "If a complete pass is made with no swaps (<code>swapped</code> remains FALSE), the array is fully sorted and the outer loop terminates early."
+  },
+  {
+    q: "Which Cambridge AS 9618 pseudocode loop construct is used as the <em>outer</em> loop in the <strong>efficient</strong> bubble sort, and why?",
+    opts: [
+      "FOR \u2026 NEXT, because we know exactly how many passes are needed",
+      "WHILE \u2026 ENDWHILE, because the condition is checked before the first pass",
+      "REPEAT \u2026 UNTIL, because at least one pass must always execute before checking the flag",
+      "IF \u2026 ENDIF, because the condition controls which branch runs"
+    ],
+    answer: 2,
+    explanation: "REPEAT-UNTIL is a post-condition loop that always executes at least once before testing \u2014 matching the do-while pattern: always perform one pass, then check whether <code>swapped = FALSE</code>."
+  },
+  {
+    q: "How many passes does the <strong>inefficient</strong> bubble sort always make on an array of <em>n</em> elements?",
+    opts: ["n", "n \u2212 1", "n\u00b2", "n / 2"],
+    answer: 1,
+    explanation: "The outer FOR loop runs from 1 to n\u22121, giving exactly n\u22121 passes regardless of whether the array becomes sorted early."
+  },
+  {
+    q: "After the <strong>first pass</strong> of bubble sort on an integer array, where is the largest element guaranteed to be?",
+    opts: [
+      "At index 0 (the start)",
+      "In its final sorted position at the last index",
+      "At the middle index",
+      "At an unpredictable position"
+    ],
+    answer: 1,
+    explanation: "The largest element \u2018bubbles up\u2019 to the final position after the first pass, winning every comparison and being swapped rightwards each time."
+  },
+  {
+    q: "In Java, how do you correctly check whether String variable <code>a</code> should come <em>after</em> String variable <code>b</code> alphabetically?",
+    opts: [
+      "if (a &gt; b)",
+      "if (a.compareTo(b) &gt; 0)",
+      "if (a.equals(b) &gt; 0)",
+      "if (a.length() &gt; b.length())"
+    ],
+    answer: 1,
+    explanation: "<code>compareTo()</code> returns a positive integer when the calling string is lexicographically greater. The <code>&gt;</code> operator is invalid for reference types in Java."
+  },
+  {
+    q: "In Cambridge AS 9618 pseudocode, which of the following correctly declares a variable called <code>temp</code> to store a single integer?",
+    opts: [
+      "DECLARE temp : INTEGER",
+      "INTEGER temp",
+      "DEFINE temp AS INTEGER",
+      "temp \u2190 INTEGER"
+    ],
+    answer: 0,
+    explanation: "Cambridge pseudocode uses the syntax <code>DECLARE &lt;identifier&gt; : &lt;data type&gt;</code>. So <code>DECLARE temp : INTEGER</code> is correct. The other options use syntax from other languages or are not valid pseudocode."
+  },
+  {
+    q: "When sorting a 2D integer array by column 0, what must be swapped when <code>arr[i][0] &gt; arr[i+1][0]</code>?",
+    opts: [
+      "Only the key values in column 0",
+      "Only values in the first and last columns",
+      "The entire rows, to keep each row\u2019s data intact",
+      "Nothing \u2014 only the indices are updated"
+    ],
+    answer: 2,
+    explanation: "Entire rows must be swapped. Swapping only column 0 would corrupt the data by detaching key values from the other columns they belong to."
+  },
+  {
+    q: "Bubble sort is described as a <strong>stable</strong> sorting algorithm. What does stability mean?",
+    opts: [
+      "The algorithm always produces the same number of comparisons regardless of the input",
+      "Elements with equal keys maintain their original relative order after sorting",
+      "The algorithm never needs to make more than one pass through the array",
+      "The algorithm produces sorted output regardless of which comparison operator is used"
+    ],
+    answer: 1,
+    explanation: "Stability means equal-key elements keep their original relative order. Bubble sort only swaps when <code>arr[i] &gt; arr[i+1]</code> (strictly greater), so equal elements are never swapped past each other."
+  }
+];
+
+let activeQuestions = [];
+
+function generateQuiz() {
+  const shuffled   = shuffle(quizBank);
+  activeQuestions  = shuffled.slice(0, 3);
+  const container  = document.getElementById('quiz-container');
+  container.innerHTML = '';
+  document.getElementById('quiz-score').style.display = 'none';
+
+  activeQuestions.forEach((q, qi) => {
+    const card  = document.createElement('div');
+    card.className = 'quiz-card';
+
+    const qDiv = document.createElement('div');
+    qDiv.className = 'quiz-card-q';
+    qDiv.innerHTML = '<span class="qnum">' + (qi+1) + '</span>' + q.q;
+    card.appendChild(qDiv);
+
+    const optsDiv = document.createElement('div');
+    optsDiv.className = 'quiz-options';
+    q.opts.forEach((opt, oi) => {
+      const label = document.createElement('label');
+      label.className = 'quiz-option';
+      label.innerHTML = '<input type="radio" name="q' + qi + '" value="' + oi + '"><span>' + opt + '</span>';
+      optsDiv.appendChild(label);
+    });
+    card.appendChild(optsDiv);
+
+    const fb = document.createElement('div');
+    fb.className = 'quiz-feedback';
+    fb.id = 'fb-' + qi;
+    card.appendChild(fb);
+    container.appendChild(card);
+  });
+}
+
+function submitAllQuiz() {
+  let score = 0;
+  activeQuestions.forEach((q, qi) => {
+    const selected = document.querySelector('input[name="q' + qi + '"]:checked');
+    const opts     = document.querySelectorAll('#quiz-container .quiz-card:nth-child(' + (qi+1) + ') .quiz-option');
+    const fb       = document.getElementById('fb-' + qi);
+
+    document.querySelectorAll('input[name="q' + qi + '"]').forEach(r => r.disabled = true);
+    opts.forEach((opt, oi) => {
+      if (oi === q.answer) opt.classList.add('correct-ans');
+      if (selected && parseInt(selected.value) === oi && oi !== q.answer) opt.classList.add('wrong-ans');
+    });
+
+    if (selected && parseInt(selected.value) === q.answer) {
+      score++;
+      fb.innerHTML = '\u2705 <strong>Correct!</strong> ' + q.explanation;
+      fb.className = 'quiz-feedback show correct';
+    } else if (selected) {
+      fb.innerHTML = '\u274C <strong>Incorrect.</strong> ' + q.explanation;
+      fb.className = 'quiz-feedback show incorrect';
+    } else {
+      fb.innerHTML = '\u26A0\uFE0F <strong>Not answered.</strong> ' + q.explanation;
+      fb.className = 'quiz-feedback show incorrect';
+    }
+  });
+
+  const scoreEl = document.getElementById('quiz-score');
+  scoreEl.style.display = 'block';
+  scoreEl.textContent   = 'Score: ' + score + ' / 3';
+  scoreEl.style.color   = score === 3 ? 'var(--success)' : score >= 2 ? '#8a6000' : 'var(--error)';
+}
+
+function regenerateQuiz() { generateQuiz(); }
+
+// ════════════════════ INIT
+renderCodes();
+buildParsons();
+generateQuiz();
+</script>
+</body>
+</html>
